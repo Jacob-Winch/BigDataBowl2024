@@ -109,4 +109,4 @@ def visualize_play(game_id: int, play_id: int):
 
 
 if __name__ == "__main__":
-    visualize_play(int(argv[0]), int(argv[1]))
+    visualize_play(int(argv[1]), int(argv[2]))
