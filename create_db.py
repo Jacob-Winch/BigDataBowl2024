@@ -2,6 +2,7 @@ from datetime import datetime
 import pandas as pd
 from psycopg2.extensions import AsIs, register_adapter
 
+from calc_vectors import calculate_vector
 from chart_play import *
 
 
@@ -90,9 +91,22 @@ def upload_tracking(path):
     conn.commit()
 
 
+def compute_sa_vectors():
+    """Compute speed/acceleration vectors for tracking data"""
+    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    cur = conn.cursor()
+    cur.execute("SELECT game_id, play_id, player_id, frame_id, speed, acceleration, direction FROM tracking "
+                "WHERE player_id!=1 AND event='handoff'")
+    data = cur.fetchall()
+    for frame in data:
+        speed_x, speed_y = calculate_vector(frame[4], frame[6])
+        acc_x, acc_y = calculate_vector(frame[5], frame[6])
+        cur.execute("UPDATE tracking SET speed_x=%s, speed_y=%s, acc_x=%s, acc_y=%s "
+                    "WHERE game_id=%s AND play_id=%s AND player_id=%s AND frame_id=%s",
+                    [speed_x, speed_y, acc_x, acc_y] + list(frame[:4]))
+    conn.commit()
+    conn.close()
+
+
 if __name__ == "__main__":
-    register_adapter(np.int64, adapt_int64)
-    register_adapter(np.bool_, adapt_bool)
-    for i in range(1, 10):
-        upload_tracking("csv_files/tracking_week_{0}.csv".format(i))
-        print(i)
+    compute_sa_vectors()
