@@ -78,15 +78,15 @@ def visualize_play(game_id: int, play_id: int):
         step = int(step_list[i])
 
         # subset data to step info
-        cur.execute("SELECT player_id, team, orientation, x, y FROM tracking WHERE game_id=%s AND play_id=%s AND "
-                    "frame_id=%s", (game_id, play_id, step))
+        cur.execute("SELECT player_id, team, orientation, x, y, speed_x, speed_y, acc_x, acc_y FROM tracking "
+                    "WHERE game_id=%s AND play_id=%s AND frame_id=%s", (game_id, play_id, step))
         step_info = cur.fetchall()
 
         # iterate step info to populate field
         home_team = None
         for row in step_info:
             if row[0] == 1:
-                color = "brown"
+                color = "saddlebrown"
                 ax.scatter(row[3], row[4], marker="d", s=100, color=color)
                 continue
             if home_team is None:
@@ -108,5 +108,44 @@ def visualize_play(game_id: int, play_id: int):
     conn.close()
 
 
+def visualize_speed(game_id: int, play_id: int, home_color: str = "cornflowerblue", away_color: str = "coral"):
+    """Visualize speed vectors for a play"""
+    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    cur = conn.cursor()
+    fig, ax = plt.subplots(figsize=(12, 5.33))
+    # create fresh field
+    ax.clear()
+    create_football_field(fig, ax)
+
+    cur.execute("SELECT player_id, team, orientation, x, y, speed_x, speed_y FROM tracking "
+                "WHERE game_id=%s AND play_id=%s AND event='handoff'", (game_id, play_id))
+    info = cur.fetchall()
+
+    # iterate step info to populate field
+    home_team = None
+    for row in info:
+        if row[0] == 1:
+            color = "saddlebrown"
+            ax.scatter(row[3], row[4], marker="d", s=100, color=color)
+            continue
+        if home_team is None:
+            home_team = row[1]
+        if row[1] == home_team:
+            color = home_color
+        else:
+            color = away_color
+        marker1 = MarkerStyle(r'$\spadesuit$')
+        marker1._transform.rotate_deg(360 - row[2])
+        ax.scatter(row[3], row[4], marker=marker1, s=150, color=color)
+        ax.arrow(row[3], row[4], row[5], row[6], color="firebrick", width=0.25)
+
+    # set axis title
+    ax.set_title(f'Tracking data for {game_id} {play_id}')
+    plt.show()
+
+
 if __name__ == "__main__":
-    visualize_play(int(argv[1]), int(argv[2]))
+    if argv[1] == "-p":
+        visualize_play(int(argv[2]), int(argv[3]))
+    elif argv[1] == "-v":
+        visualize_speed(int(argv[2]), int(argv[3]))
