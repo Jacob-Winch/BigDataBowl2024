@@ -1,3 +1,4 @@
+from joblib import load
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -51,6 +52,76 @@ def create_football_field(fig, ax, line_color='white', field_color='green'):
     ax.set_xticklabels(label_set, fontsize=20, color=line_color)
 
     return fig, ax
+
+
+def visualize_frame(game_id: int, play_id: int, home_color: str = 'cornflowerblue', away_color: str = 'coral'):
+    """Visualize the crucial frame for a play"""
+    model = load("distance.joblib")
+    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    cur = conn.cursor()
+    fig, ax = plt.subplots(figsize=(12, 5.33))
+    ax.clear()
+    create_football_field(fig, ax)
+
+    cur.execute("SELECT defensive_team FROM plays WHERE game_id=%s AND play_id=%s", (game_id, play_id))
+    defensive_team = cur.fetchone()[0]
+
+    cur.execute("SELECT player_id, team, orientation, x, y, speed_x, speed_y, acc_x, acc_y FROM tracking "
+                "WHERE game_id=%s AND play_id=%s AND event='handoff'", (game_id, play_id))
+    step_info = cur.fetchall()
+
+    # predict tackle probability
+    cur.execute("SELECT x, y, lr FROM tracking t, plays p "
+                "WHERE t.game_id=%s AND p.game_id=%s AND t.play_id=%s AND p.play_id=%s AND t.player_id=p.ball_carrier",
+                (game_id, game_id, play_id, play_id))
+    ball_carrier = cur.fetchone()
+    data = []
+    for row in step_info:
+        if ball_carrier[2] == "left":
+            data.append([ball_carrier[0] - row[3], abs(ball_carrier[1] - row[4])])
+        else:
+            data.append([row[3] - ball_carrier[0], abs(ball_carrier[1] - row[4])])
+    probabilities = model.predict_proba(data)
+
+    """orientation = []
+    for player in step_info:
+        try:
+            degrees = np.degrees(np.arctan2(ball_carrier[0] - player[3], ball_carrier[1] - player[4])) % 360
+            degree_difference = abs(player[2] - degrees)
+            if degree_difference > 180:
+                degree_difference = 360 - degree_difference  # Degree difference is now between 0-180
+            print(degree_difference)
+            orientation.append((180 - degree_difference) / 180)
+        except TypeError:
+            orientation.append(0)"""
+
+    # iterate step info to populate field
+    home_team = None
+    for i, row in enumerate(step_info):
+        if row[0] == 1:
+            color = "saddlebrown"
+            ax.scatter(row[3], row[4], marker="d", s=100, color=color)
+            continue
+        if home_team is None:
+            home_team = row[1]
+        if row[1] == home_team:
+            color = home_color
+        else:
+            color = away_color
+        marker1 = MarkerStyle(r'$\spadesuit$')
+        marker1._transform.rotate_deg(360 - row[2])
+        if row[1] == defensive_team:
+            ax.scatter(row[3], row[4], marker=marker1, s=150, color=color,
+                       label="{0} - {1}".format(row[0] % 100, probabilities[i][1]))
+            ax.text(row[3], row[4], str(row[0] % 100))
+        else:
+            ax.scatter(row[3], row[4], marker=marker1, s=150, color=color)
+
+    # set axis title
+    ax.set_title(f'Tracking data for {game_id} {play_id}')
+    ax.legend()
+    plt.savefig("play.png")
+    conn.close()
 
 
 def visualize_play(game_id: int, play_id: int):
@@ -147,5 +218,6 @@ def visualize_speed(game_id: int, play_id: int, home_color: str = "cornflowerblu
 if __name__ == "__main__":
     if argv[1] == "-p":
         visualize_play(int(argv[2]), int(argv[3]))
+        visualize_frame(int(argv[2]), int(argv[3]))
     elif argv[1] == "-v":
         visualize_speed(int(argv[2]), int(argv[3]))
