@@ -9,6 +9,7 @@ import psycopg2
 from sys import argv
 import os
 from dotenv import load_dotenv
+from matplotlib.patches import Patch
 load_dotenv()
 connection_string = os.environ["connection_string"]
 
@@ -128,14 +129,14 @@ def visualize_frame(game_id: int, play_id: int, home_color: str = 'cornflowerblu
     conn.close()
 
 
-def visualize_play(game_id: int, play_id: int):
+def visualize_play(game_id: int, play_id: int, title_str: str):
     """Visualize a play from the dataset"""
     conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     cur.execute("SELECT MAX(frame_id) FROM tracking WHERE game_id=%s AND play_id=%s", (game_id, play_id))
-    frames = cur.fetchone()[0]
-    frame_mod = 1
-    frames = frames // frame_mod
+    og_frames = cur.fetchone()[0]
+    frame_mod = 2
+    og_frames = og_frames // frame_mod
     interval_ms = 100 * frame_mod
     fig, ax = plt.subplots(figsize=(12, 5.33))
     
@@ -145,7 +146,7 @@ def visualize_play(game_id: int, play_id: int):
     pause_duration_frames = 10
 
     # Increase the total number of frames to include the pause
-    frames = frames + pause_duration_frames
+    frames = og_frames + pause_duration_frames
     # find appropriate
     cur.execute("SELECT MAX(frame_id) FROM tracking WHERE game_id=%s AND play_id=%s", (game_id, play_id))
     max_step = cur.fetchone()[0]
@@ -156,6 +157,15 @@ def visualize_play(game_id: int, play_id: int):
                 away_color: str = 'coral'):
         ax.clear()
         create_football_field(fig, ax)
+        
+        home_patch = Patch(color=home_color, label=f'Home Team: New Orleans Saints')  
+        away_patch = Patch(color=away_color, label=f'Away Team: Cincinnati Bengals')  
+    
+        legend = ax.legend(handles=[home_patch, away_patch], 
+                       loc='upper left', frameon=True, handlelength=0, handletextpad=0)
+        legend.get_frame().set_facecolor('lightgray')  # Set the legend background color
+        legend.get_frame().set_edgecolor('black')  # Optionally, set the legend border color
+        legend.get_frame().set_alpha(0.8)  # Optionally, set the transparency of the background
         """Function to animate player tracking data"""
         if pass_arrived_frame and pass_arrived_frame <= i <= pass_arrived_frame + pause_duration_frames:
             
@@ -190,6 +200,7 @@ def visualize_play(game_id: int, play_id: int):
                             arrowprops=dict(arrowstyle="->", connectionstyle="arc3"),
                             bbox=dict(boxstyle="round,pad=0.5", facecolor='wheat', edgecolor='black', alpha=0.5),
                             fontsize=12)
+            ax.set_title(f"{title_str}", fontsize=14, fontweight='bold')
             return
                     
         if i > (pass_arrived_frame + pause_duration_frames):
@@ -221,6 +232,7 @@ def visualize_play(game_id: int, play_id: int):
             ax.scatter(row[3], row[4], marker=marker1, s=150, color=color)
             player_number = str(int(row[9]))
             ax.text(row[3], row[4], player_number, color = 'white', fontsize = 8, ha = 'center', va = 'center')
+        ax.set_title(f"{title_str}", fontsize=14, fontweight='bold')
 
     anim = animation.FuncAnimation(fig, animate, fargs=(game_id, play_id, frames), frames=frames + pause_duration_frames, repeat=False,
                                    interval=interval_ms)
@@ -267,7 +279,8 @@ def visualize_speed(game_id: int, play_id: int, home_color: str = "cornflowerblu
 
 if __name__ == "__main__":
     if argv[1] == "-p":
-        visualize_play(int(argv[2]), int(argv[3]))
+        visualize_play(int(argv[2]), int(argv[3]), "T.Hill pass short left to M.Callaway to CIN 30 for 9 yards")
         #visualize_frame(int(argv[2]), int(argv[3]))
     elif argv[1] == "-v":
         visualize_speed(int(argv[2]), int(argv[3]))
+
