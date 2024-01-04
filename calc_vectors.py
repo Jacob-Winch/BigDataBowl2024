@@ -2,6 +2,10 @@ from joblib import dump, load
 import math
 import numpy as np
 from sklearn.linear_model import LogisticRegression
+import os
+from dotenv import load_dotenv
+load_dotenv()
+connection_string = os.environ["connection_string"]
 
 import psycopg2
 
@@ -9,7 +13,7 @@ import psycopg2
 def star_tackles1():
     """Calculate total 1-star tackles missed"""
     model = load("distance.joblib")
-    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     cur.execute("UPDATE players SET star_1=0")
     cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
@@ -39,7 +43,7 @@ def star_tackles1():
 def star_tackles5():
     """Calculate total 5-star tackles made by each player"""
     model = load("distance.joblib")
-    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     cur.execute("UPDATE players SET star_5=0")
     cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
@@ -76,7 +80,7 @@ def calculate_vector(magnitude: float, degrees: float):
 def expected_tackles():
     """Calculate expected tackles"""
     model = load("distance.joblib")
-    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     cur.execute("UPDATE players SET tackles_above_expected=0")
     cur.execute("UPDATE teams SET tackles_above_expected=0")
@@ -140,7 +144,7 @@ def expected_tackles():
 
 def plot_distance():
     """Plot the distance between a defender and the ball-carrier"""
-    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
     plays = cur.fetchall()

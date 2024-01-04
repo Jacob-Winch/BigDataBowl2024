@@ -54,7 +54,7 @@ def create_football_field(fig, ax, line_color='white', field_color='green'):
         else:
             label_set += [" " for j in range(9)] + [str((10 - i) * 10)]
     label_set = [" "] + label_set + [" " for j in range(10)]
-    ax.set_xticklabels(label_set, fontsize=20, color=line_color)
+    ax.set_xticklabels(label_set, fontsize=20, color=line_color, zorder = 1)
 
     return fig, ax
 
@@ -186,7 +186,7 @@ def visualize_play(game_id: int, play_id: int, title_str: str):
                     color = away_color
                 marker1 = MarkerStyle(r'o')
                 marker1._transform.rotate_deg(360 - row[2])
-                ax.scatter(row[3], row[4], marker=marker1, s=150, color=color)
+                ax.scatter(row[3], row[4], marker=marker1, s=150, color=color, zorder = 2)
                 player_number = str(int(row[9]))
                 ax.text(row[3], row[4], player_number, color = 'white', fontsize = 8, ha = 'center', va = 'center')
                 
@@ -229,7 +229,7 @@ def visualize_play(game_id: int, play_id: int, title_str: str):
                 color = away_color
             marker1 = MarkerStyle(r'o')
             marker1._transform.rotate_deg(360 - row[2])
-            ax.scatter(row[3], row[4], marker=marker1, s=150, color=color)
+            ax.scatter(row[3], row[4], marker=marker1, s=150, color=color, zorder = 2)
             player_number = str(int(row[9]))
             ax.text(row[3], row[4], player_number, color = 'white', fontsize = 8, ha = 'center', va = 'center')
         ax.set_title(f"{title_str}", fontsize=14, fontweight='bold')
