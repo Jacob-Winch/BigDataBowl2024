@@ -257,7 +257,7 @@ def get_players_table():
         
     ]
 
-    fig, ax = plt.subplots(figsize=(40,30))
+    fig, ax = plt.subplots(figsize=(20,20))
     fig.set_facecolor(bg_color)
     ax.set_facecolor(bg_color)
 

@@ -1,9 +1,13 @@
 from datetime import datetime
 import pandas as pd
 from psycopg2.extensions import AsIs, register_adapter
-
+import time
 from calc_vectors import calculate_vector
 from chart_play import *
+import os
+from dotenv import load_dotenv
+load_dotenv()
+connection_string = os.environ["connection_string"]
 
 
 def adapt_int64(int64):
@@ -90,14 +94,40 @@ def upload_tracking(path):
         cur.execute("INSERT INTO tracking VALUES (" + "%s, " * 14 + "%s)", data)
     conn.commit()
 
+def add_jerseyNumber_to_tracking_for_specific_play(path, game_id, play_id):
+    """add_jerseyNumber to psql db for a specific play"""
+    conn = psycopg2.connect(connection_string)
+    cur = conn.cursor()
+    df = pd.read_csv(path)
+    df["nflId"] = df["nflId"].astype(object).replace(np.nan, 1)
+    for col in ['gameId', 'playId', 'nflId']:
+        if df[col].dtype != 'int':
+            df[col] = df[col].astype(int)
+            
+    specific_play_df = df[(df['gameId'] == game_id) & (df['playId'] == play_id)]
+    
+    jersey_numbers = specific_play_df[['gameId', 'playId', 'nflId', 'jerseyNumber']]
+    
+    for _, row in jersey_numbers.iterrows():
+
+        game_id, play_id, nfl_id, jersey_number = row
+        cur.execute("UPDATE tracking SET jerseynumber = %s WHERE game_id = %s AND play_id = %s AND player_id = %s",
+                    (jersey_number, game_id, play_id, nfl_id))
+        
+        
+    conn.commit()
+    conn.close()
+    
+    
 
 def compute_sa_vectors():
     """Compute speed/acceleration vectors for tracking data"""
-    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     cur.execute("SELECT game_id, play_id, player_id, frame_id, speed, acceleration, direction FROM tracking "
-                "WHERE player_id!=1 AND event='handoff'")
+                "WHERE player_id!=1")
     data = cur.fetchall()
+
     for frame in data:
         speed_x, speed_y = calculate_vector(frame[4], frame[6])
         acc_x, acc_y = calculate_vector(frame[5], frame[6])
@@ -107,6 +137,28 @@ def compute_sa_vectors():
     conn.commit()
     conn.close()
 
+def compute_sa_vectors_for_a_specific_play(game_id: int, play_id: int):
+    """Compute speed/acceleration vectors for a specific play for tracking data"""
+    conn = psycopg2.connect(connection_string)
+    cur = conn.cursor()
+    cur.execute("SELECT game_id, play_id, player_id, frame_id, speed, acceleration, direction FROM tracking "
+                "WHERE player_id!=1 AND game_id=%s AND play_id=%s", [game_id, play_id])
+    data = cur.fetchall()
+    for frame in data:
+        speed_x, speed_y = calculate_vector(frame[4], frame[6])
+        acc_x, acc_y = calculate_vector(frame[5], frame[6])
+        cur.execute("UPDATE tracking SET speed_x=%s, speed_y=%s, acc_x=%s, acc_y=%s "
+                    "WHERE game_id=%s AND play_id=%s AND player_id=%s AND frame_id=%s",
+                    [speed_x, speed_y, acc_x, acc_y] + list(frame[:4]))
+    conn.commit()
+    conn.close()
+    
 
 if __name__ == "__main__":
-    compute_sa_vectors()
+    
+    start_time = time.time()
+    add_jerseyNumber_to_tracking_for_specific_play("/Users/winch/Data Science & Machine Learning Projects/BigDataBowl2024/data/nfl-big-data-bowl-2024/tracking_week_2.csv", 2022091807, 1294)
+    end_time = time.time()
+    duration = end_time - start_time
+
+    print(f"The program took {duration} seconds to run.")
