@@ -10,66 +10,6 @@ connection_string = os.environ["connection_string"]
 import psycopg2
 
 
-def star_tackles1():
-    """Calculate total 1-star tackles missed"""
-    model = load("distance.joblib")
-    conn = psycopg2.connect(connection_string)
-    cur = conn.cursor()
-    cur.execute("UPDATE players SET star_1=0")
-    cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
-    plays = cur.fetchall()
-    for play in plays:
-        cur.execute("SELECT x, y, lr, team FROM tracking WHERE game_id=%s AND play_id=%s AND player_id=%s "
-                    "AND event='pass_arrived'", play)
-        ball_carrier = cur.fetchone()
-        if ball_carrier is None:
-            continue
-        cur.execute("SELECT player_id, x, y, speed, acceleration FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
-            "NOT IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
-            "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
-        non_tacklers = cur.fetchall()
-        non_tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),
-                       math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2 + (ball_carrier[1] - tackler[2]) ** 2)),
-                       tackler[3], tackler[4]]
-                      for tackler in non_tacklers]
-        tackler_probability = model.predict_proba(non_tacklers_x) if non_tacklers_x else []
-        for i, tackler in enumerate(tackler_probability):
-            if tackler[1] > 0.95:
-                cur.execute("UPDATE players SET star_1=star_1+1 WHERE id=%s", (non_tacklers[i][0],))
-    conn.commit()
-    conn.close()
-
-
-def star_tackles5():
-    """Calculate total 5-star tackles made by each player"""
-    model = load("distance.joblib")
-    conn = psycopg2.connect(connection_string)
-    cur = conn.cursor()
-    cur.execute("UPDATE players SET star_5=0")
-    cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
-    plays = cur.fetchall()
-    for play in plays:
-        cur.execute("SELECT x, y, lr, team FROM tracking WHERE game_id=%s AND play_id=%s AND player_id=%s "
-                    "AND event='pass_arrived'", play)
-        ball_carrier = cur.fetchone()
-        if ball_carrier is None:
-            continue
-        cur.execute("SELECT player_id, x, y, speed, acceleration FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
-            "IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
-            "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
-        tacklers = cur.fetchall()
-        tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),
-                       math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2 + (ball_carrier[1] - tackler[2]) ** 2)),
-                       tackler[3], tackler[4]]
-                      for tackler in tacklers]
-        tackler_probability = model.predict_proba(tacklers_x) if tacklers_x else []
-        for i, tackler in enumerate(tackler_probability):
-            if tackler[1] < 0.25:
-                cur.execute("UPDATE players SET star_5=star_5+1 WHERE id=%s", (tacklers[i][0], ))
-    conn.commit()
-    conn.close()
-
-
 def calculate_vector(magnitude: float, degrees: float):
     """Calculate the vector of a defender or ball_carrier's speed or acceleration"""
     actual_degrees = (450 - degrees) % 360
