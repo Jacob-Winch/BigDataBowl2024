@@ -1,4 +1,4 @@
-# Title
+# Tackles Above Average: Determining Tackle Probability at the Moment of a Catch
 
 ### Submission for the 2024 NFL Big Data Bowl - Undergraduate Track
 ### Team North | University of Alberta
