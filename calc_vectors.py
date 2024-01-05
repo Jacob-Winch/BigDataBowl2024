@@ -2,12 +2,90 @@ from joblib import dump, load
 import math
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-import os
-from dotenv import load_dotenv
-load_dotenv()
-connection_string = os.environ["connection_string"]
 
 import psycopg2
+
+
+def star_tackles_missed():
+    """Calculate total tackles missed"""
+    model = load("distance.joblib")
+    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    cur = conn.cursor()
+    for i in range(1, 6):
+        cur.execute("UPDATE players SET star_{0}_missed=0".format(i))
+    cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
+    plays = cur.fetchall()
+    for play in plays:
+        cur.execute("SELECT x, y, lr, team FROM tracking WHERE game_id=%s AND play_id=%s AND player_id=%s "
+                    "AND event='pass_arrived'", play)
+        ball_carrier = cur.fetchone()
+        if ball_carrier is None:
+            continue
+        cur.execute("SELECT player_id, x, y, speed, acceleration FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
+            "NOT IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
+            "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
+        non_tacklers = cur.fetchall()
+        non_tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),
+                       math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2 + (ball_carrier[1] - tackler[2]) ** 2)),
+                       tackler[3], tackler[4]]
+                      for tackler in non_tacklers]
+        tackler_probability = model.predict_proba(non_tacklers_x) if non_tacklers_x else []
+        for i, tackler in enumerate(tackler_probability):
+            if tackler[1] > 0.90:
+                stars = "1"
+            elif tackler[1] > 0.75:
+                stars = "2"
+            elif tackler[1] > 0.5:
+                stars = "3"
+            elif tackler[1] > 0.25:
+                stars = "4"
+            else:
+                stars = "5"
+            cur.execute("UPDATE players SET star_{0}_missed=star_{0}_missed+1 WHERE id=%s".format(stars),
+                        (non_tacklers[i][0],))
+    conn.commit()
+    conn.close()
+
+
+def star_tackles_made():
+    """Calculate total star tackles made by each player"""
+    model = load("distance.joblib")
+    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+    cur = conn.cursor()
+    for i in range(1, 6):
+        cur.execute("UPDATE players SET star_{0}_made=0".format(i))
+    cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
+    plays = cur.fetchall()
+    for play in plays:
+        cur.execute("SELECT x, y, lr, team FROM tracking WHERE game_id=%s AND play_id=%s AND player_id=%s "
+                    "AND event='pass_arrived'", play)
+        ball_carrier = cur.fetchone()
+        if ball_carrier is None:
+            continue
+        cur.execute("SELECT player_id, x, y, speed, acceleration FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
+            "IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
+            "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
+        tacklers = cur.fetchall()
+        tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),
+                       math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2 + (ball_carrier[1] - tackler[2]) ** 2)),
+                       tackler[3], tackler[4]]
+                      for tackler in tacklers]
+        tackler_probability = model.predict_proba(tacklers_x) if tacklers_x else []
+        for i, tackler in enumerate(tackler_probability):
+            if tackler[1] > 0.90:
+                stars = "1"
+            elif tackler[1] > 0.75:
+                stars = "2"
+            elif tackler[1] > 0.5:
+                stars = "3"
+            elif tackler[1] > 0.25:
+                stars = "4"
+            else:
+                stars = "5"
+            cur.execute("UPDATE players SET star_{0}_made=star_{0}_made+1 WHERE id=%s".format(stars),
+                        (tacklers[i][0], ))
+    conn.commit()
+    conn.close()
 
 
 def calculate_vector(magnitude: float, degrees: float):
@@ -20,7 +98,7 @@ def calculate_vector(magnitude: float, degrees: float):
 def expected_tackles():
     """Calculate expected tackles"""
     model = load("distance.joblib")
-    conn = psycopg2.connect(connection_string)
+    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
     cur = conn.cursor()
     cur.execute("UPDATE players SET tackles_above_expected=0")
     cur.execute("UPDATE teams SET tackles_above_expected=0")
@@ -84,7 +162,7 @@ def expected_tackles():
 
 def plot_distance():
     """Plot the distance between a defender and the ball-carrier"""
-    conn = psycopg2.connect(connection_string)
+    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
     cur = conn.cursor()
     cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
     plays = cur.fetchall()
@@ -151,4 +229,5 @@ def plot_distance():
 
 
 if __name__ == "__main__":
-    expected_tackles()
+    star_tackles_missed()
+    star_tackles_made()
