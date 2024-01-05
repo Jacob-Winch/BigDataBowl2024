@@ -3,11 +3,15 @@ import math
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 import psycopg2
+import os
+from dotenv import load_dotenv
+load_dotenv()
+connection_string = os.environ["connection_string"]
 
 
 def star_tackles_missed():
     """Calculate total tackles missed"""
-    model = load("distance.joblib")
+    model = load("model.joblib")
     conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
     cur = conn.cursor()
     for i in range(1, 6):
@@ -18,18 +22,22 @@ def star_tackles_missed():
         cur.execute("SELECT x, y, lr, team FROM tracking WHERE game_id=%s AND play_id=%s AND player_id=%s "
                     "AND event='pass_arrived'", play)
         ball_carrier = cur.fetchone()
-        if ball_carrier is None:
+        if ball_carrier is None:  # This means that the play was not a passing play
             continue
-        cur.execute("SELECT player_id, x, y, speed, acceleration FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
-            "NOT IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
-            "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
+        # Get player data for the non-tacklers
+        cur.execute("SELECT player_id, x, y, speed, acceleration FROM tracking "
+                    "WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
+                    "NOT IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s "
+                    "AND (tackle='t' OR assist='t')) AND event='pass_arrived'",
+                    list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
         non_tacklers = cur.fetchall()
-        non_tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),
-                       math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2 + (ball_carrier[1] - tackler[2]) ** 2)),
-                       tackler[3], tackler[4]]
-                      for tackler in non_tacklers]
-        tackler_probability = model.predict_proba(non_tacklers_x) if non_tacklers_x else []
+        non_tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),  # Sqrt of lateral distance
+                           math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2
+                                               + (ball_carrier[1] - tackler[2]) ** 2)),  # Sqrt of Euclidean distance
+                           tackler[3], tackler[4]] for tackler in non_tacklers]  # Speed and acceleration
+        tackler_probability = model.predict_proba(non_tacklers_x) if non_tacklers_x else []  # Predict probabilities
         for i, tackler in enumerate(tackler_probability):
+            # Assign a star value passed on the probability
             if tackler[1] > 0.90:
                 stars = "1"
             elif tackler[1] > 0.75:
@@ -48,7 +56,7 @@ def star_tackles_missed():
 
 def star_tackles_made():
     """Calculate total star tackles made by each player"""
-    model = load("distance.joblib")
+    model = load("model.joblib")
     conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
     cur = conn.cursor()
     for i in range(1, 6):
@@ -59,18 +67,22 @@ def star_tackles_made():
         cur.execute("SELECT x, y, lr, team FROM tracking WHERE game_id=%s AND play_id=%s AND player_id=%s "
                     "AND event='pass_arrived'", play)
         ball_carrier = cur.fetchone()
-        if ball_carrier is None:
+        if ball_carrier is None:  # This means the play was not a passing play
             continue
-        cur.execute("SELECT player_id, x, y, speed, acceleration FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
-            "IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
-            "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
+        # Get player data
+        cur.execute("SELECT player_id, x, y, speed, acceleration FROM tracking "
+                    "WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
+                    "IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
+                    "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
         tacklers = cur.fetchall()
-        tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),
-                       math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2 + (ball_carrier[1] - tackler[2]) ** 2)),
-                       tackler[3], tackler[4]]
+        tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),  # Sqrt of lateral distance
+                       math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2
+                                           + (ball_carrier[1] - tackler[2]) ** 2)),  # Sqrt of Euclidean distance
+                       tackler[3], tackler[4]]  # Speed and acceleration
                       for tackler in tacklers]
         tackler_probability = model.predict_proba(tacklers_x) if tacklers_x else []
         for i, tackler in enumerate(tackler_probability):
+            # Assign a star value to the tackle
             if tackler[1] > 0.90:
                 stars = "1"
             elif tackler[1] > 0.75:
@@ -96,7 +108,7 @@ def calculate_vector(magnitude: float, degrees: float):
 
 def expected_tackles():
     """Calculate expected tackles"""
-    model = load("distance.joblib")
+    model = load("model.joblib")
     conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
     cur = conn.cursor()
     cur.execute("UPDATE players SET tackles_above_expected=0")
@@ -107,16 +119,21 @@ def expected_tackles():
         cur.execute("SELECT x, y, lr, team FROM tracking WHERE game_id=%s AND play_id=%s AND player_id=%s "
                     "AND event='pass_arrived'", play)
         ball_carrier = cur.fetchone()
-        if ball_carrier is None:
+        if ball_carrier is None:  # This means that the play is not a passing play
             continue
-        cur.execute("SELECT player_id, x, y, speed, acceleration, team FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
+        # Get tackler data
+        cur.execute("SELECT player_id, x, y, speed, acceleration, team FROM tracking "
+                    "WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
                     "IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
                     "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
         tacklers = cur.fetchall()
-        cur.execute("SELECT player_id, x, y, speed, acceleration, team FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
+        # Get non-tackler data
+        cur.execute("SELECT player_id, x, y, speed, acceleration, team FROM tracking "
+                    "WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id "
                     "NOT IN (SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
                     "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[3]] + list(play[:2]))
         non_tacklers = cur.fetchall()
+        # Calculate model features for tacklers and non-tacklers
         tacklers_x = [[math.sqrt(abs(ball_carrier[1] - tackler[2])),
                        math.sqrt(math.sqrt((ball_carrier[0] - tackler[1]) ** 2 + (ball_carrier[1] - tackler[2]) ** 2)),
                        tackler[3], tackler[4]]
@@ -127,12 +144,14 @@ def expected_tackles():
                           for tackler in non_tacklers]
         tackler_probability = model.predict_proba(tacklers_x) if tacklers_x else []
         non_tackler_probability = model.predict_proba(non_tacklers_x)
+        # Create dicts to map tackler and non-tackler ids to their tackle probability
         tp, ntp = {}, {}
         for i, tackler in enumerate(tackler_probability):
             tp[tacklers[i][0]] = tackler[1]
         for i, tackler in enumerate(non_tackler_probability):
             ntp[non_tacklers[i][0]] = tackler[1]
         ntp = dict(sorted(ntp.items(), key=lambda item: -item[1]))
+        # If there was no tackle made on the play, assign the missed tackle to the player with the highest probability
         if not tacklers:
             for nt in ntp:
                 cur.execute("UPDATE players SET tackles_above_expected=tackles_above_expected-%s WHERE id=%s",
@@ -141,13 +160,14 @@ def expected_tackles():
                             (ntp.get(nt), non_tacklers[0][5]))
                 break
         else:
+            # Increment the TAA of each tackler
             for t in tp:
-                if t == 35466:
-                    print("{0}: {1}".format(play, tp.get(t)))
                 cur.execute("UPDATE players SET tackles_above_expected=tackles_above_expected+%s WHERE id=%s",
                             (1 - tp.get(t), t))
                 cur.execute("UPDATE teams SET tackles_above_expected=tackles_above_expected+%s WHERE name=%s",
                             (1 - tp.get(t), non_tacklers[0][5]))
+            # Decrement the TAA of each non-tackler with a tackle probability
+            # of at least 25% higher than the highest tackler
             for nt in ntp:
                 if ntp.get(nt) < max(tp.values()) + 0.25:
                     break
@@ -160,25 +180,25 @@ def expected_tackles():
 
 
 def generate_model():
-    """"""
+    """Generate the Logistic Regression model used to determine tackle probability"""
     conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
     plays = cur.fetchall()
-    vertical = [[], []]
     lateral = [[], []]
     distance = [[], []]
-    players = [[], []]
-    vec = [[], []]
     speed = [[], []]
     acceleration = [[], []]
+    players = [[], []]
     for play in plays:
-        cur.execute("SELECT x, y, team, speed_x, speed_y FROM tracking WHERE game_id=%s AND play_id=%s AND player_id=%s "
-                    "AND event='pass_arrived'", play)
+        cur.execute("SELECT x, y, team, speed_x, speed_y FROM tracking "
+                    "WHERE game_id=%s AND play_id=%s AND player_id=%s AND event='pass_arrived'", play)
         ball_carrier = cur.fetchone()
-        if ball_carrier is None:
+        if ball_carrier is None:  # This implies that it is not a passing play
             continue
-        cur.execute("SELECT x, y, speed, acceleration FROM tracking WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id IN "
+        # Get tackler and non-tackler data
+        cur.execute("SELECT x, y, speed, acceleration FROM tracking "
+                    "WHERE game_id=%s AND play_id=%s AND team!=%s AND team!='FB' AND player_id IN "
                     "(SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
                     "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[2]] + list(play[:2]))
         players[0] = cur.fetchall()
@@ -186,45 +206,23 @@ def generate_model():
                     "(SELECT player_id FROM tackles WHERE game_id=%s AND play_id=%s AND (tackle='t' OR assist='t')) "
                     "AND event='pass_arrived'", list(play[:2]) + [ball_carrier[2]] + list(play[:2]))
         players[1] = cur.fetchall()
-        np.seterr(all="raise")
+        np.seterr(all="raise")  # Raise all warnings as errors
+        # Calculate the data for each player
         for i in range(2):
             for player in players[i]:
-                vertical[i].append(math.sqrt(abs(ball_carrier[0] - player[0])))
                 lateral[i].append(math.sqrt(abs(ball_carrier[1] - player[1])))
                 distance[i].append(math.sqrt(math.sqrt((ball_carrier[0] - player[0]) ** 2
                                                        + (ball_carrier[1] - player[1]) ** 2)))
-                #print(ball_carrier)
-                #print(player)
-                """try:
-                    bc_unit_vec = [ball_carrier[4] / np.sqrt(ball_carrier[3] ** 2 + ball_carrier[4] ** 2),
-                                   ball_carrier[3] / np.sqrt(ball_carrier[3] ** 2 + ball_carrier[4] ** 2)]
-                    player_unit_vec = [player[3], player[2]]
-                    vec[i].append(abs((player[0] - ball_carrier[0] - bc_unit_vec[1] * (player[1] - ball_carrier[1])
-                                   / bc_unit_vec[0]) / (bc_unit_vec[1] * player_unit_vec[0] / bc_unit_vec[0]
-                                                        - player_unit_vec[1])))
-                    #print(vec[i][-1])
-                except FloatingPointError:
-                    vec[i].append(100)"""
                 speed[i].append(player[2])
                 acceleration[i].append(player[3])
-    """weights = [[1 / len(distance[0])] * len(distance[0])] + [[1 / len(distance[1])] * len(distance[1])]
-    plt.hist(vertical, weights=weights)
-    plt.show()
-    plt.hist(lateral, weights=weights)
-    plt.show()
-    plt.hist(distance, weights=weights)
-    plt.show()"""
-    x = [i for i in zip(lateral[0] + lateral[1], distance[0] + distance[1], speed[0] + speed[1], acceleration[0] + acceleration[1])]
+    # Convert the calculated variables to the format needed for the LogisticRegression model
+    x = [i for i in zip(lateral[0] + lateral[1], distance[0] + distance[1], speed[0] + speed[1],
+                        acceleration[0] + acceleration[1])]
     y = [1] * len(distance[0]) + [0] * len(distance[1])
-    print(np.corrcoef(vertical[0] + vertical[1], y))
-    print(np.corrcoef(distance[0] + distance[1], y))
-    print(np.corrcoef(acceleration[0] + acceleration[1], y))
-    print(np.corrcoef(distance[0] + distance[1], vertical[0] + vertical[1]))
     model = LogisticRegression(class_weight="balanced").fit(x, y)
-    print(sum(model.predict(x)))
     print(model.score(x, y))  # This is an F1-score
     print(model.coef_, model.intercept_)
-    dump(model, "distance.joblib")
+    dump(model, "model.joblib")
 
 
 if __name__ == "__main__":
