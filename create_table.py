@@ -11,6 +11,10 @@ from dotenv import load_dotenv
 import random
 random.seed(73)
 
+#################################################################################################
+# A Mock table to test out the plottable package (The data is not real)
+#################################################################################################
+
 load_dotenv()
 current_directory = os.environ["current_directory"]
 
