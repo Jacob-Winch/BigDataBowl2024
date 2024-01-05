@@ -2,7 +2,6 @@ from joblib import dump, load
 import math
 import numpy as np
 from sklearn.linear_model import LogisticRegression
-
 import psycopg2
 
 
@@ -160,9 +159,9 @@ def expected_tackles():
     conn.close()
 
 
-def plot_distance():
-    """Plot the distance between a defender and the ball-carrier"""
-    conn = psycopg2.connect("dbname=BigDataBowl user=cschneider")
+def generate_model():
+    """"""
+    conn = psycopg2.connect(connection_string)
     cur = conn.cursor()
     cur.execute("SELECT game_id, play_id, ball_carrier FROM plays")
     plays = cur.fetchall()

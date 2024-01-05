@@ -80,6 +80,15 @@ plt.rcParams['font.family'] = "monospace"
 cmap = normed_cmap(teams_TAA["tackles_above_average"], cmap = plt.cm.PiYG, num_stds = 2.5)
 
 def plot_total_TAA_bar(ax, val, height, cmap, width = 0.5):
+    """Plots TAA bar on the plottable table
+
+    Args:
+        ax : matplotlib axis
+        val (float): value to be plotted
+        height : height of bar
+        cmap : matplotlib color map
+        width (float, optional): width of bar Defaults to 0.5.
+    """
     color = cmap(val)
     ax.barh(y=[0], width=[val], color=color, height=height)
     ax.set_xlim(-15.5, 15)  
