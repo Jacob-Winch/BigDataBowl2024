@@ -3,7 +3,7 @@ import pandas as pd
 from psycopg2.extensions import AsIs, register_adapter
 import time
 from calc_vectors import calculate_vector
-from chart_play import *
+from code.chart_play import *
 import os
 from dotenv import load_dotenv
 load_dotenv()
