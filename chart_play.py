@@ -130,7 +130,7 @@ def visualize_frame(game_id: int, play_id: int, home_color: str = 'cornflowerblu
         marker1._transform.rotate_deg(360 - row[2])
         if row[1] == defensive_team:
             ax.scatter(row[3], row[4], marker=marker1, s=150, color=color,
-                       label="{0} - {1}".format(row[0] % 100, probabilities[i][1]), zorder=2)
+                       label="{0} - {1}".format(row[0] % 100, probabilities[i][1]), zorder=3)
             ax.text(row[3], row[4], str(row[0] % 100))
         else:
             ax.scatter(row[3], row[4], marker=marker1, s=150, color=color, zorder=2)
@@ -180,20 +180,20 @@ def visualize_play(game_id: int, play_id: int, title_str: str):
              tackler[5], tackler[6]]]
     probability = model.predict_proba(data)[0]
 
-    def animate(i: int, game_id: int, play_id: int, frames: int, home_color: str = 'cornflowerblue',
-                away_color: str = 'coral', home_text_color: str = 'white', away_text_color: str = 'white'):
+    def animate(i: int, game_id: int, play_id: int, frames: int, home_color: str = 'royalblue',
+                away_color: str = 'black', home_text_color: str = 'yellow', away_text_color: str = 'white'):
         ax.clear()
         create_football_field(fig, ax)
 
-        home_patch = Patch(color=home_color, label=f'Home Team: New Orleans Saints')
-        away_patch = Patch(color=away_color, label=f'Away Team: Cincinnati Bengals')
+        home_patch = Patch(color=home_color, label=f'Home Team: Los Angeles Rams')
+        away_patch = Patch(color=away_color, label=f'Away Team: Atlanta Falcons')
 
         legend = ax.legend(handles=[home_patch, away_patch],
                        loc='upper left', frameon=True, handlelength=0, handletextpad=0)
         legend.get_frame().set_facecolor('lightgray')  # Set the legend background color
         legend.get_frame().set_edgecolor('black')  # Optionally, set the legend border color
         legend.get_frame().set_alpha(0.8)  # Optionally, set the transparency of the background
-        """Function to animate player tracking data"""
+        
         if pass_arrived_frame and pass_arrived_frame <= i <= pass_arrived_frame + pause_duration_frames:
 
             cur.execute("SELECT player_id, team, orientation, x, y, speed_x, speed_y, acc_x, acc_y, jerseynumber FROM tracking "
@@ -210,19 +210,21 @@ def visualize_play(game_id: int, play_id: int, title_str: str):
                 if row[1] == home_team:
                     color = home_color
                     text_color = home_text_color
+                    player_zorder = 3
                 else:
                     color = away_color
                     text_color = away_text_color
+                    player_zorder = 2
                 marker1 = MarkerStyle(r'o')
                 marker1._transform.rotate_deg(360 - row[2])
-                ax.scatter(row[3], row[4], marker=marker1, s=150, color=color, zorder = 2)
+                ax.scatter(row[3], row[4], marker=marker1, s=150, color=color, zorder = player_zorder)
                 player_number = str(int(row[9]))
                 ax.text(row[3], row[4], player_number, color = text_color, fontsize = 8, ha = 'center', va = 'center')
 
                 if row[0] == int(argv[4]):
                     circle = plt.Circle((row[3], row[4]), 1.5, color='yellow', fill=False, lw=2)
                     ax.add_patch(circle)
-                    textstr = "{0}: Tackle Probability: {1.2f}%".format(tackler[-1], probability[1] * 100)
+                    textstr = f"{tackler[-1]}: Tackle Probability: {round(probability[1] * 100, 2)}"
                     ax.annotate(textstr,
                             xy=(row[3], row[4]), xycoords='data',
                             xytext=(0.75, 0.83), textcoords='axes fraction',
@@ -255,15 +257,19 @@ def visualize_play(game_id: int, play_id: int, title_str: str):
             if row[1] == home_team:
                 color = home_color
                 text_color = home_text_color
+                player_zorder = 3
             else:
                 color = away_color
                 text_color = away_text_color
-            marker1 = MarkerStyle(r'$\spadesuit$')
+                player_zorder = 2
+            marker1 = MarkerStyle(r'o')
             marker1._transform.rotate_deg(360 - row[2])
-            ax.scatter(row[3], row[4], marker=marker1, s=150, color=color)
+            ax.scatter(row[3], row[4], marker=marker1, s=150, color=color, zorder = player_zorder)
+            player_number = str(int(row[9]))
+            ax.text(row[3], row[4], player_number, color = text_color, fontsize = 8, ha = 'center', va = 'center')
 
         # set axis title
-        ax.set_title(f'Tracking data for {game_id} {play_id} at step {step}')
+        ax.set_title(f"{title_str}", fontsize=14, fontweight='bold')
 
     anim = animation.FuncAnimation(fig, animate, fargs=(game_id, play_id, frames), frames=frames, repeat=False,
                                    interval=interval_ms)
