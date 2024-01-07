@@ -32,4 +32,10 @@ Siddhartha Chitrakar, Mathematics and Computer Undergraduate Student | [Linkedin
 - All of the team logo photos used in the tables in our report. All of the team logos were taken from Wikipedia's NFL team pages.
 
 ## Bibliography
-
+@misc{nfl-big-data-bowl-2024,
+    author = {Michael Lopez, Thompson Bliss, Ally Blake, Andrew Patton, Jonathan McWilliams, Addison Howard, Will Cukierski},
+    title = {NFL Big Data Bowl 2024},
+    publisher = {Kaggle},
+    year = {2023},
+    url = {https://kaggle.com/competitions/nfl-big-data-bowl-2024}
+}
