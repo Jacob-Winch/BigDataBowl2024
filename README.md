@@ -33,3 +33,8 @@ Siddhartha Chitrakar, Mathematics and Computer Undergraduate Student | [Linkedin
 
 ## Bibliography
 - Michael Lopez, Thompson Bliss, Ally Blake, Andrew Patton, Jonathan McWilliams, Addison Howard, Will Cukierski. (2023). NFL Big Data Bowl 2024. Kaggle. https://kaggle.com/competitions/nfl-big-data-bowl-2024
+-Inayatali, H., White A., & Hocevar D. (2023), Between the Lines: How do We Measure Pressure?.
+https://www.kaggle.com/code/hassaaninayatali/between-the-lines-how-do-we-measure-pressure
+-Deshpande, S. K., & Evans, K. (2020). Expected hypothetical completion probability. Journal of Quantitative Analysis in Sports, 16(2), 85-94.
+-YouTube. (2023). How to Easily Transform Your Tables in Python. YouTube. Retrieved January 7, 2024, from https://www.youtube.com/watch?v=3HVT0lHaIKg.
+-Baseball Savant. (n.d.). Statcast outs above average leaderboard. baseballsavant.com. https://baseballsavant.mlb.com/leaderboard/outs_above_average 
