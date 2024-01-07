@@ -117,7 +117,7 @@ col_defs = [
     ),
     ColumnDefinition(
         name = "tackles_above_average",
-        title = "Total Tackles Above Average (TAA)",
+        title = "Total Tackles Above Average (TTAA)",
         textprops = {"ha": "center", "va":"center", "weight":"bold", "color": text_color},
         width = 1.25,
         plot_fn = plot_total_TAA_bar,
@@ -128,7 +128,7 @@ col_defs = [
     )
 ]
 
-fig, ax = plt.subplots(figsize=(20,22))
+fig, ax = plt.subplots(figsize=(40,30))
 fig.set_facecolor(bg_color)
 ax.set_facecolor(bg_color)
 table = Table(

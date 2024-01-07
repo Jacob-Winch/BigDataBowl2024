@@ -107,32 +107,33 @@ col_defs = [
     ColumnDefinition(
         name = "Rank",
         textprops = {"ha": "center", "weight":"bold"},
-        width = 0.5
+        width = 0.4
     ),
     ColumnDefinition(
         name = "profile_picture",
+        title = "",
         textprops = {"ha": "center", "va":"center", "color": bg_color},
-        width = 0.5,
+        width = 0.4,
         plot_fn = circled_image
     ),
     ColumnDefinition(
         name = "name",
         title = "Player",
         textprops = {"ha": "left", "weight":"bold"},
-        width = 1.15,
+        width = 1.5,
     ),
       ColumnDefinition(
         name = "logo",
         title = "Team",
         textprops = {"ha": "center", "va":"center", "color": text_color},
-        width = 0.5,
+        width = 0.65,
         plot_fn = image
     ),
     ColumnDefinition(
         name = "position",
-        title = "Position",
+        title = "Pos.",
         textprops = {"ha": "center"},
-        width = 0.5,
+        width = 0.4,
     ),
     ColumnDefinition(
         name = "tackles_above_average",
@@ -140,133 +141,133 @@ col_defs = [
         textprops = {"ha": "center", 
                      "color": text_color, 
                      "weight":"bold", 
-                     "bbox": {"boxstyle": "circle", "pad": .35}
+                     "bbox": {"boxstyle": "circle", "pad": .2}
                     },
-        cmap = normed_cmap(top_10_players_TAA_plus_bobby_wagner["tackles_above_average"], cmap = plt.cm.YlGn, num_stds=2),
+        cmap = normed_cmap(bottom_10_players_TAA["tackles_above_average"], cmap = plt.cm.Reds.reversed(), num_stds=2),
         width = 0.5,
         formatter =  lambda x: "{:.2f}".format(x)
     ),
     ColumnDefinition(
         name = "star_5_made",
         title = "Tk",
-        group = "5 Star (0-25%)",
+        group = "5 Star",
         textprops = {"ha": "center"},
-        width = 0.5,
+        width = 0.32,
         border="left"
     ),
      ColumnDefinition(
         name = "5_star_opportunities",
         title = "Opp",
-        group = "5 Star (0-25%)",
+        group = "5 Star",
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.32
     ),
      ColumnDefinition(
         name = "star_5_pct",
         title = "%",
-        group = "5 Star (0-25%)",
+        group = "5 Star",
         formatter=decimal_to_percent, 
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.42 
     ),
         ColumnDefinition(
         name = "star_4_made",
         title = "Tk",
-        group = "4 Star (26-50%)",
+        group = "4 Star",
         textprops = {"ha": "center"},
-        width = 0.5,
+        width = 0.32,
         border="left"
     ),
      ColumnDefinition(
         name = "4_star_opportunities",
-        group = "4 Star (26-50%)",
+        group = "4 Star",
         title = "Opp",
         textprops = {"ha": "center"},
-        width = 0.5,
+        width = 0.32,
     ),
      ColumnDefinition(
         name = "star_4_pct",
-        group = "4 Star (26-50%)",
+        group = "4 Star",
         title = "%",
         formatter=decimal_to_percent, 
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.42
     ),
         ColumnDefinition(
         name = "star_3_made",
-        group = "3 Star (51-75%)",
+        group = "3 Star",
         title = "Tk",
         textprops = {"ha": "center"},
-        width = 0.5,
+        width = 0.32,
         border="left"
     ),
      ColumnDefinition(
         name = "3_star_opportunities",
-        group = "3 Star (51-75%)",
+        group = "3 Star",
         title = "Opp",
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.32 
     ),
      ColumnDefinition(
         name = "star_3_pct",
-        group = "3 Star (51-75%)",
+        group = "3 Star",
         title = "%",
         formatter=decimal_to_percent, 
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.42
     ),
         ColumnDefinition(
         name = "star_2_made",
-        group = "2 Star (76-90%)",
+        group = "2 Star",
         title = "Tk",
         textprops = {"ha": "center"},
-        width = 0.5,
+        width = 0.32,
         border="left"
     ),
      ColumnDefinition(
         name = "2_star_opportunities",
-        group = "2 Star (76-90%)",
+        group = "2 Star",
         title = "Opp",
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.32
     ),
      ColumnDefinition(
         name = "star_2_pct",
-        group = "2 Star (76-90%)",
+        group = "2 Star",
         title = "%",
         formatter=decimal_to_percent, 
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.42
     ),
         ColumnDefinition(
         name = "star_1_made",
-        group = "1 Star (91-100%)",
+        group = "1 Star",
         title = "Tk",
         textprops = {"ha": "center"},
-        width = 0.5,
+        width = 0.32,
         border="left"    
     ),
      ColumnDefinition(
         name = "1_star_opportunities",
-        group = "1 Star (91-100%)",
+        group = "1 Star",
         title = "Opp",
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.32 
     ),
      ColumnDefinition(
         name = "star_1_pct",
-        group = "1 Star (91-100%)",
+        group = "1 Star",
         title = "%",
         formatter=decimal_to_percent,
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.42
     ),
         ColumnDefinition(
         name = "total_tackles",
         group = "Total",
         title = "Tk",
         textprops = {"ha": "center"},
-        width = 0.5,
+        width = 0.32,
         border="left"
     ),
      ColumnDefinition(
@@ -274,7 +275,7 @@ col_defs = [
         group = "Total",
         title = "Op",
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.32
     ),
      ColumnDefinition(
         name = "total_pct",
@@ -282,12 +283,12 @@ col_defs = [
         title = "%",
         formatter=decimal_to_percent,
         textprops = {"ha": "center"},
-        width = 0.5 
+        width = 0.32
     )
     
 ]
 
-fig, ax = plt.subplots(figsize=(40,30))
+fig, ax = plt.subplots(figsize=(17,12))
 fig.set_facecolor(bg_color)
 ax.set_facecolor(bg_color)
 
@@ -298,13 +299,13 @@ table = Table(
     row_dividers = True,
     row_divider_kw = {"linewidth":1, "linestyle": (0, (1,5))},
     footer_divider = True, 
-    textprops = {"fontsize":14},
+    textprops = {"fontsize":10},
     ax = ax
 ).autoset_fontcolors(colnames=["tackles_above_average"])
-fig.savefig('Figures/top_10_TAA.png', facecolor = ax.get_facecolor(), dpi = 400)
+#fig.savefig('figures/top_10_TAA_2.png', facecolor = ax.get_facecolor(), dpi = 400)
 plt.show()
 
-fig, ax = plt.subplots(figsize=(40,5))
+fig, ax = plt.subplots(figsize=(17,2.5))
 fig.set_facecolor(bg_color)
 ax.set_facecolor(bg_color)
 
@@ -315,10 +316,10 @@ table = Table(
     row_dividers = True,
     row_divider_kw = {"linewidth":1, "linestyle": (0, (1,5))},
     footer_divider = True, 
-    textprops = {"fontsize":14},
+    textprops = {"fontsize":10},
     ax = ax
 ).autoset_fontcolors(colnames=["tackles_above_average"])
-fig.savefig('Figures/bobby_wagner_TAA.png', facecolor = ax.get_facecolor(), dpi = 400)
+#fig.savefig('figures/bobby_wagner_TAA_2.png', facecolor = ax.get_facecolor(), dpi = 400)
 plt.show()
 
 bottom_10_players_TAA['5_star_opportunities'] = bottom_10_players_TAA['star_5_made'] + bottom_10_players_TAA['star_5_missed']
@@ -343,7 +344,7 @@ bottom_10_players_TAA = bottom_10_players_TAA[[
 
 bottom_10_players_TAA['tackles_above_average'] = bottom_10_players_TAA['tackles_above_average'].round(2)
 
-fig, ax = plt.subplots(figsize=(40,30))
+fig, ax = plt.subplots(figsize=(17,12))
 fig.set_facecolor(bg_color)
 ax.set_facecolor(bg_color)
 
@@ -354,10 +355,10 @@ table = Table(
     row_dividers = True,
     row_divider_kw = {"linewidth":1, "linestyle": (0, (1,5))},
     footer_divider = True, 
-    textprops = {"fontsize":14},
+    textprops = {"fontsize":10},
     ax = ax
 ).autoset_fontcolors(colnames=["tackles_above_average"])
-fig.savefig('Figures/bottom_10_TAA.png', facecolor = ax.get_facecolor(), dpi = 400)
+fig.savefig('figures/bottom_10_TAA_2.png', facecolor = ax.get_facecolor(), dpi = 400)
 plt.show()
 
 

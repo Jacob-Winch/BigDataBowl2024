@@ -154,14 +154,14 @@ def visualize_play(game_id: int, play_id: int, title_str: str):
              tackler[5], tackler[6]]]
     probability = model.predict_proba(data)[0]
 
-    def animate(i: int, game_id: int, play_id: int, frames: int, home_color: str = 'cornflowerblue',
-                away_color: str = 'coral', home_text_color: str = 'white', away_text_color: str = 'white'):
+    def animate(i: int, game_id: int, play_id: int, frames: int, home_color: str = 'royalblue',
+                away_color: str = 'black', home_text_color: str = 'yellow', away_text_color: str = 'white'):
         """Function to animate player tracking data"""
         ax.clear()
         create_football_field(fig, ax)
 
-        home_patch = Patch(color=home_color, label=f'Home Team: New Orleans Saints')
-        away_patch = Patch(color=away_color, label=f'Away Team: Cincinnati Bengals')
+        home_patch = Patch(color=home_color, label=f'Home Team: Los Angeles Rams')
+        away_patch = Patch(color=away_color, label=f'Away Team: Atlanta Falcons')
 
         legend = ax.legend(handles=[home_patch, away_patch],
                        loc='upper left', frameon=True, handlelength=0, handletextpad=0)
@@ -198,7 +198,7 @@ def visualize_play(game_id: int, play_id: int, title_str: str):
                 if row[0] == int(argv[4]):  # If the current player is the "focused" player
                     circle = plt.Circle((row[3], row[4]), 1.5, color='yellow', fill=False, lw=2)
                     ax.add_patch(circle)
-                    textstr = f"{tackler[-1]}: Tackle Probability: {round(probability[1] * 100, 2)}"
+                    textstr = f"{tackler[-1]}: Tackle Probability: {round(probability[1] * 100, 2)}%"
                     ax.annotate(textstr,
                             xy=(row[3], row[4]), xycoords='data',
                             xytext=(0.75, 0.83), textcoords='axes fraction',
