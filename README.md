@@ -18,20 +18,21 @@ Siddhartha Chitrakar, Mathematics and Computer Undergraduate Student | [Linkedin
   
 ### code
 - The code directory contains all of the Python scripts used to build our report. The files are described below:
-  - Hi
+  - `build_model.py`: Our Logistic Regression model to determine tackling probability. Also determines the stars of a given tackle.
+  - `chart_play.py`: Creates the gifs to visualize the tackling probability of a specific player on a given play.
+  - `create_db.py`: Creates a PostgreSQL database from the NFL Big Data Bowl 2024 CSV files.
+  - `table_code`: Creates the tables used in the report.
+    -`create_table.py`: Creates a table using fake data, used as a test.
+    -`player_TAA_tabple.py`: Creates the player TAA tables.
+    -`team_TAA_table.py`: Creates the team TAA table.
 
 ### data
-
+- Additional CSV files that contain the TAA data for both players and teams. 
 ### profile_photos
 - All of the profile photos of players used in the tables in our report. All of the profile photos were taken from ESPN's player roster pages.
 
 ### team_logos
 - All of the team logo photos used in the tables in our report. All of the team logos were taken from Wikipedia's NFL team pages.
-
-
-
-
-
 
 ## Bibliography
 
