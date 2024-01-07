@@ -1,5 +1,4 @@
 csv_files
-*.csv
 *.joblib
 
 # Byte-compiled / optimized / DLL files
