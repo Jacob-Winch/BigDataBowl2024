@@ -18,7 +18,7 @@ Siddhartha Chitrakar, Mathematics and Computer Undergraduate Student | [Linkedin
   
 ### code
 - The code directory contains all of the Python scripts used to build our report. The files are described below:
-- - Hi
+ - Hi
 
 ### data
 
