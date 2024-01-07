@@ -22,9 +22,6 @@ Siddhartha Chitrakar, Mathematics and Computer Undergraduate Student | [Linkedin
   - `chart_play.py`: Creates the gifs to visualize the tackling probability of a specific player on a given play.
   - `create_db.py`: Creates a PostgreSQL database from the NFL Big Data Bowl 2024 CSV files.
   - `table_code`: Creates the tables used in the report.
-    --`create_table.py`: Creates a table using fake data, used as a test.
-    --`player_TAA_tabple.py`: Creates the player TAA tables.
-    --`team_TAA_table.py`: Creates the team TAA table.
 
 ### data
 - Additional CSV files that contain the TAA data for both players and teams. 
