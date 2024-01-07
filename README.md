@@ -14,8 +14,13 @@ Siddhartha Chitrakar, Mathematics and Computer Undergraduate Student | [Linkedin
 
 ## Repository Directory
 ### Figures
-
+- The figures folder contains all of the tables and gifs used in our report.
+  
 ### code
+- The code directory contains all of the Python scripts used to build our report. The files are described below:
+- - Hi
+
+### data
 
 ### profile_photos
 - All of the profile photos of players used in the tables in our report. All of the profile photos were taken from ESPN's player roster pages.
