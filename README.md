@@ -13,6 +13,15 @@ Colton Schneider, Computer Science Undergraduate Student | [Linkedin](https://ww
 Siddhartha Chitrakar, Mathematics and Computer Undergraduate Student | [Linkedin](https://www.linkedin.com/in/siddhartha-chitrakar/)
 
 ## Repository Directory
+### Figures
+
+### code
+
+### profile_photos
+- All of the profile photos of players used in the tables in our report. All of the profile photos were taken from ESPN's player roster pages.
+
+### team_logos
+- All of the team logo photos used in the tables in our report. All of the team logos were taken from Wikipedia's NFL team pages.
 
 
 
