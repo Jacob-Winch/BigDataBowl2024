@@ -37,4 +37,6 @@ Siddhartha Chitrakar, Mathematics and Computer Undergraduate Student | [Linkedin
 https://www.kaggle.com/code/hassaaninayatali/between-the-lines-how-do-we-measure-pressure
 - Deshpande, S. K., & Evans, K. (2020). Expected hypothetical completion probability. Journal of Quantitative Analysis in Sports, 16(2), 85-94.
 - YouTube. (2023). How to Easily Transform Your Tables in Python. YouTube. Retrieved January 7, 2024, from https://www.youtube.com/watch?v=3HVT0lHaIKg.
-- Baseball Savant. (n.d.). Statcast outs above average leaderboard. baseballsavant.com. https://baseballsavant.mlb.com/leaderboard/outs_above_average 
+- Baseball Savant. (n.d.). Statcast outs above average leaderboard. baseballsavant.com. https://baseballsavant.mlb.com/leaderboard/outs_above_average
+- YouTube. (2022). Drake London Impressive Performance vs. Rams! YouTube. Retrieved January 7, 2024, from https://www.youtube.com/watch?v=O9UDaMIyyDc&t=15s.
+- YouTube. (2022a). Cincinnati Bengals vs. New Orleans Saints | 2022 Week 6 Highlights. YouTube. Retrieved January 7, 2024, from https://www.youtube.com/watch?v=leD4D30oxCY. 
