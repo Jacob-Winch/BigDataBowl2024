@@ -79,7 +79,7 @@ plt.rcParams['text.color'] = text_color
 plt.rcParams['font.family'] = "monospace"
 cmap = normed_cmap(teams_TAA["tackles_above_average"], cmap = plt.cm.PiYG, num_stds = 2.5)
 
-def plot_total_TAA_bar(ax, val, height, cmap, width = 0.5):
+def plot_total_TAA_bar(ax, val, height, cmap, width = 0.4):
     """Plots TAA bar on the plottable table
 
     Args:
@@ -113,22 +113,22 @@ col_defs = [
         name = "full_team_name",
         title = "",
         textprops = {"ha": "left", "va":"center", "weight":"bold", "color": text_color},
-        width = 0.4,
+        width = 0.5,
     ),
     ColumnDefinition(
         name = "tackles_above_average",
-        title = "Total Tackles Above Average (TTAA)",
+        title = "Cumulative Tackles Above Average (cTAA)",
         textprops = {"ha": "center", "va":"center", "weight":"bold", "color": text_color},
         width = 1.25,
         plot_fn = plot_total_TAA_bar,
         plot_kw = {
-            "height": 0.5,
+            "height": 0.4,
             "cmap": cmap
         }
     )
 ]
 
-fig, ax = plt.subplots(figsize=(40,30))
+fig, ax = plt.subplots(figsize=(17,15))
 fig.set_facecolor(bg_color)
 ax.set_facecolor(bg_color)
 table = Table(
@@ -138,11 +138,11 @@ table = Table(
     row_dividers = True,
     row_divider_kw = {"linewidth":1, "linestyle": (0, (1,5))},
     footer_divider = True, 
-    textprops = {"fontsize":14},
+    textprops = {"fontsize":10},
     ax = ax
 ).autoset_fontcolors(colnames=["tackles_above_average"])
     
-fig.savefig('Figures/team_TAA.png', facecolor = ax.get_facecolor(), dpi = 400)
+fig.savefig('team_TAA.png', facecolor = ax.get_facecolor(), dpi = 400)
     
 plt.show()
 
